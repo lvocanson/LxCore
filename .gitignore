@@ -1,0 +1,6 @@
+# Visual studio things
+.vs/
+*.user
+
+# Build results
+bin/
