@@ -14,6 +14,7 @@
     <ClInclude Include="include\LxCore\Engine.h" />
     <ClInclude Include="src\core\LxCore.h" />
     <ClInclude Include="src\pch.h" />
+    <ClInclude Include="include\LxCore\WindowsCheck.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\LxCore.cpp" />

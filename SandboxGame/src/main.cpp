@@ -1,9 +1,9 @@
+#include <LxCore/WindowsCheck.h>
+
 #include "game/Game.h"
+#include <Windows.h>
 
-typedef void* HINSTANCE;
-typedef wchar_t* PWSTR;
-
-int __stdcall wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
+int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
     return 0;
 }
