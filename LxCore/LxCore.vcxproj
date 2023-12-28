@@ -12,7 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\LxCore\Engine.h" />
-    <ClInclude Include="src\core\LxCore.h" />
+    <ClInclude Include="include\LxCore\core\LxCore.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="include\LxCore\WindowsCheck.h" />
   </ItemGroup>
@@ -72,10 +72,10 @@
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>src/pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>$(ProjectDir)src\pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>src/pch.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(ProjectDir)src\pch.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -92,10 +92,10 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>src/pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>$(ProjectDir)src\pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>src/pch.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir)include\</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(ProjectDir)src\pch.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>

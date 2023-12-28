@@ -1,3 +1,3 @@
 #pragma once
 
-#include "src/core/LxCore.h"
+#include "core/LxCore.h"
