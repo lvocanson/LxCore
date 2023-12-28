@@ -117,6 +117,8 @@
       <PrecompiledHeaderFile>src/pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)LxCore\include\;$(ProjectDir)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>src/pch.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -135,6 +137,7 @@
       <PrecompiledHeaderFile>src/pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)LxCore\include\;$(ProjectDir)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>src/pch.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
