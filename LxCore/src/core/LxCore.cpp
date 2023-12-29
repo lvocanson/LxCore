@@ -1,5 +1,6 @@
 #include "LxCore\core\LxCore.h"
 #include "LxCore\core\Window.h"
+#include <sstream>
 
 bool LxCore::Init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -16,16 +17,25 @@ bool LxCore::Init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     return false;
 }
 
+void LxCore::Error(const wchar_t* message)
+{
+    MessageBoxW(NULL, message, L"Error", MB_OK | MB_ICONERROR);
+}
+
 void LxCore::Shutdown()
 {
-    s_Instance->m_Running = false;
+    if (s_Instance != nullptr)
+        s_Instance->m_Running = false;
 }
 
 LxCore::LxCore(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     : m_MainWnd(hInstance, nCmdShow, Shutdown)
 {
     if (m_MainWnd.GetHandle() == nullptr)
+    {
+        Error(L"Failed to create window.");
         return;
+    }
 
     m_Initialized = true;
 }

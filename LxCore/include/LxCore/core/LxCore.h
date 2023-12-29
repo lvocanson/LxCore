@@ -7,6 +7,7 @@ public:
     static bool Init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
     static LxCore* Get() { return s_Instance; }
     static void Run() { s_Instance->MainLoop(); }
+    static void Error(const wchar_t* message);
     static void Shutdown();
 
 private:
