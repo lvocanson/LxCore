@@ -15,7 +15,7 @@ public:
 
     UINT GetAdapters(std::vector<IDXGIAdapter*>& adapters) const;
     static UINT GetAdapterOutputs(IDXGIAdapter* adapter, std::vector<IDXGIOutput*>& outputs);
-    static UINT GetOutputDisplayModes(IDXGIOutput* output, enum DXGI_FORMAT format, std::vector<DXGI_MODE_DESC>& modes);
+    static UINT GetOutputDisplayModes(IDXGIOutput* output, enum DXGI_FORMAT format, UINT flags, std::vector<DXGI_MODE_DESC>& modes);
     
 private:
     Microsoft::WRL::ComPtr<IDXGIFactory4> m_Factory;

@@ -25,11 +25,9 @@ UINT Infrastructure::GetAdapterOutputs(IDXGIAdapter* adapter, std::vector<IDXGIO
     return count;
 }
 
-UINT Infrastructure::GetOutputDisplayModes(IDXGIOutput* output, enum DXGI_FORMAT format, std::vector<DXGI_MODE_DESC>& modes)
+UINT Infrastructure::GetOutputDisplayModes(IDXGIOutput* output, enum DXGI_FORMAT format, UINT flags, std::vector<DXGI_MODE_DESC>& modes)
 {
     UINT count = 0;
-    UINT flags = 0;
-
     output->GetDisplayModeList(format, flags, &count, nullptr);
     modes.resize(count);
     output->GetDisplayModeList(format, flags, &count, modes.data());
