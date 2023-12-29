@@ -4,7 +4,10 @@ Window::Window(HINSTANCE hInstance, int nCmdShow, Callback onClose)
     : m_OnClose(onClose)
 {
     if (!Register(hInstance))
+    {
+        m_LastErrorMessage = L"Failed to register window class.";
         return;
+    }
 
     m_Handle = CreateWindowExW(
         0,
@@ -15,12 +18,17 @@ Window::Window(HINSTANCE hInstance, int nCmdShow, Callback onClose)
         NULL, NULL, hInstance, NULL);
 
     if (!m_Handle)
+    {
+        m_LastErrorMessage = L"Failed to create window.";
         return;
-    
+    }
+
     // Set the user data to this pointer
     SetWindowLongPtrW(m_Handle, GWLP_USERDATA, (LONG_PTR)this);
     ShowWindow(m_Handle, nCmdShow);
     UpdateWindow(m_Handle);
+
+    m_Created = true;
 }
 
 Window::~Window()

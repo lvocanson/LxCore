@@ -1,5 +1,6 @@
 #include "LxCore\core\LxCore.h"
 #include "LxCore\core\Window.h"
+#include "LxCore/rendering/Infrastructure.h"
 #include <sstream>
 
 bool LxCore::Init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
@@ -31,9 +32,9 @@ void LxCore::Shutdown()
 LxCore::LxCore(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     : m_MainWnd(hInstance, nCmdShow, Shutdown)
 {
-    if (m_MainWnd.GetHandle() == nullptr)
+    if (!m_MainWnd.IsCreated())
     {
-        Error(L"Failed to create window.");
+        Error(m_MainWnd.GetLastErrorMessage());
         return;
     }
 
