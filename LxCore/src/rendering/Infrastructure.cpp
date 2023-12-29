@@ -1,15 +1,8 @@
 #include "LxCore/rendering/Infrastructure.h"
 
-bool Infrastructure::Init()
+Infrastructure::Infrastructure()
 {
-    HRESULT hr = CreateDXGIFactory1(IID_PPV_ARGS(&m_Factory));
-    if (FAILED(hr))
-    {
-        m_LastErrorMessage = L"Failed to create DXGI factory";
-        return false;
-    }
-
-    return true;
+    LxHrAssert(CreateDXGIFactory1(IID_PPV_ARGS(&m_Factory)), "Failed to create DXGI factory");
 }
 
 UINT Infrastructure::GetAdapters(std::vector<IDXGIAdapter*>& adapters) const

@@ -5,10 +5,8 @@
 class LxCore
 {
 public:
-    static bool Init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
+    static void InitAndRun(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
     static LxCore* Get() { return s_Instance; }
-    static void Run() { s_Instance->MainLoop(); }
-    static void Error(const wchar_t* message);
     static void Shutdown();
 
 private:
@@ -22,7 +20,6 @@ private:
 
 private:
     static inline LxCore* s_Instance = nullptr;
-    bool m_Initialized = false;
     bool m_Running = false;
     Window m_MainWnd;
     Infrastructure m_Infrastructure;
