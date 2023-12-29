@@ -30,11 +30,17 @@ void LxCore::Shutdown()
 }
 
 LxCore::LxCore(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
-    : m_MainWnd(hInstance, nCmdShow, Shutdown)
+    : m_MainWnd(hInstance, nCmdShow, Shutdown), m_Infrastructure()
 {
     if (!m_MainWnd.IsCreated())
     {
         Error(m_MainWnd.GetLastErrorMessage());
+        return;
+    }
+
+    if (!m_Infrastructure.Init())
+    {
+        Error(m_Infrastructure.GetLastErrorMessage());
         return;
     }
 

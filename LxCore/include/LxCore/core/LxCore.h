@@ -1,5 +1,6 @@
 #pragma once
 #include "Window.h"
+#include "LxCore/rendering/Infrastructure.h"
 
 class LxCore
 {
@@ -24,4 +25,5 @@ private:
     bool m_Initialized = false;
     bool m_Running = false;
     Window m_MainWnd;
+    Infrastructure m_Infrastructure;
 };
