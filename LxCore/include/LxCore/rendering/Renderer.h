@@ -30,6 +30,7 @@ private:
     Microsoft::WRL::ComPtr<IDXGISwapChain> m_SwapChain;
 
     UINT m_RtvSize, m_DsvSize, m_CbvSrvUavSize;
+    UINT m_4xMsaaQuality;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_DsvHeap;
     static const char m_SwapChainBufferCount = 2;

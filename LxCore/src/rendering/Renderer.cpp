@@ -41,6 +41,8 @@ Renderer::Renderer(Infrastructure& infrastructure, Window& window)
     m_DsvSize = infrastructure.GetDescriptorSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
     m_CbvSrvUavSize = infrastructure.GetDescriptorSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
+    m_4xMsaaQuality = infrastructure.GetMsaaQuality(DXGI_FORMAT_R8G8B8A8_UNORM, 4);
+
     infrastructure.CreateDescriptorHeap(m_SwapChainBufferCount, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, false, &m_RtvHeap);
     infrastructure.CreateDescriptorHeap(1, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, true, &m_DsvHeap);
 

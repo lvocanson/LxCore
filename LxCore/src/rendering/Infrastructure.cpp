@@ -11,7 +11,6 @@ Infrastructure::Infrastructure(enum D3D_FEATURE_LEVEL featureLevel)
 
     CreateFactory();
     CreateDevice(featureLevel);
-    Get4xMsaaQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM);
 }
 
 void Infrastructure::CreateFence(ID3D12Fence** fence) const
@@ -107,16 +106,16 @@ inline void Infrastructure::CreateDevice(enum D3D_FEATURE_LEVEL featureLevel)
     }
 }
 
-inline void Infrastructure::Get4xMsaaQualityLevels(enum DXGI_FORMAT format)
+UINT Infrastructure::GetMsaaQuality(enum DXGI_FORMAT format, UINT sampleCount) const
 {
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels
     {
         .Format = format,
-        .SampleCount = 4,
+        .SampleCount = sampleCount,
         .Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE
     };
     LxHrAssert(m_Device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &msQualityLevels, sizeof(msQualityLevels)), "Failed to check multisample quality levels");
-    m_4xMsaaQuality = msQualityLevels.NumQualityLevels;
-    LxAssert(m_4xMsaaQuality > 0, "Unexpected 4x MSAA quality level");
+    LxAssert(msQualityLevels.NumQualityLevels > 0, "Unexpected 4x MSAA quality level");
+    return msQualityLevels.NumQualityLevels;
 }
 

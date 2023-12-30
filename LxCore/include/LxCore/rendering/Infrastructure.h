@@ -32,6 +32,7 @@ public:
     void CreateSwapChain(ID3D12CommandQueue* commandQueue, DXGI_SWAP_CHAIN_DESC* swapChainDesc, IDXGISwapChain** swapChain) const;
 
     UINT GetDescriptorSize(enum D3D12_DESCRIPTOR_HEAP_TYPE type) const;
+    UINT GetMsaaQuality(enum DXGI_FORMAT format, UINT sampleCount) const;
     void CreateDescriptorHeap(UINT numDescriptors, enum D3D12_DESCRIPTOR_HEAP_TYPE type, bool shaderVisible, ID3D12DescriptorHeap** descriptorHeap) const;
     void CreateRenderTargetView(ID3D12Resource* resource, D3D12_RENDER_TARGET_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE& handle) const;
 
@@ -42,10 +43,8 @@ public:
 private:
     void CreateFactory();
     void CreateDevice(enum D3D_FEATURE_LEVEL featureLevel);
-    void Get4xMsaaQualityLevels(enum DXGI_FORMAT format);
 
 private:
     Microsoft::WRL::ComPtr<IDXGIFactory4> m_Factory;
     Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
-    UINT m_4xMsaaQuality;
 };
