@@ -9,30 +9,10 @@ Infrastructure::Infrastructure(enum D3D_FEATURE_LEVEL featureLevel)
     debugController->Release();
 #endif
 
-    LxHrAssert(CreateDXGIFactory1(IID_PPV_ARGS(&m_Factory)), "Failed to create DXGI factory");
-
-    // Create a hardware device if possible, otherwise create a WARP device
-    HRESULT hr = D3D12CreateDevice(nullptr, featureLevel, IID_PPV_ARGS(&m_Device));
-    if (FAILED(hr))
-    {
-        IDXGIAdapter* adapter;
-        LxHrAssert(m_Factory->EnumWarpAdapter(IID_PPV_ARGS(&adapter)), "Failed to create WARP adapter");
-        LxHrAssert(D3D12CreateDevice(adapter, featureLevel, IID_PPV_ARGS(&m_Device)), "Failed to create WARP device");
-    }
-
-    m_RtvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    m_DsvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-    m_CbvSrvUavDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-    D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels
-    {
-        .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-        .SampleCount = 4,
-        .Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE
-    };
-    LxHrAssert(m_Device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &msQualityLevels, sizeof(msQualityLevels)), "Failed to check multisample quality levels");
-    m_4xMsaaQuality = msQualityLevels.NumQualityLevels;
-    LxAssert(m_4xMsaaQuality > 0, "Unexpected 4x MSAA quality level");
+    CreateFactory();
+    CreateDevice(featureLevel);
+    GetDescriptorSizes();
+    Get4xMsaaQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM);
 }
 
 void Infrastructure::CreateFence(ID3D12Fence** fence) const
@@ -68,3 +48,41 @@ UINT Infrastructure::GetOutputDisplayModes(IDXGIOutput* output, enum DXGI_FORMAT
     output->GetDisplayModeList(format, flags, &count, modes.data());
     return count;
 }
+
+inline void Infrastructure::CreateFactory()
+{
+    LxHrAssert(CreateDXGIFactory1(IID_PPV_ARGS(&m_Factory)), "Failed to create DXGI factory");
+}
+
+inline void Infrastructure::CreateDevice(enum D3D_FEATURE_LEVEL featureLevel)
+{
+    // Create a hardware device if possible, otherwise create a WARP device
+    HRESULT hr = D3D12CreateDevice(nullptr, featureLevel, IID_PPV_ARGS(&m_Device));
+    if (FAILED(hr))
+    {
+        IDXGIAdapter* adapter;
+        LxHrAssert(m_Factory->EnumWarpAdapter(IID_PPV_ARGS(&adapter)), "Failed to create WARP adapter");
+        LxHrAssert(D3D12CreateDevice(adapter, featureLevel, IID_PPV_ARGS(&m_Device)), "Failed to create WARP device");
+    }
+}
+
+inline void Infrastructure::GetDescriptorSizes()
+{
+    m_RtvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_DsvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    m_CbvSrvUavDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+}
+
+inline void Infrastructure::Get4xMsaaQualityLevels(enum DXGI_FORMAT format)
+{
+    D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels
+    {
+        .Format = format,
+        .SampleCount = 4,
+        .Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE
+    };
+    LxHrAssert(m_Device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &msQualityLevels, sizeof(msQualityLevels)), "Failed to check multisample quality levels");
+    m_4xMsaaQuality = msQualityLevels.NumQualityLevels;
+    LxAssert(m_4xMsaaQuality > 0, "Unexpected 4x MSAA quality level");
+}
+

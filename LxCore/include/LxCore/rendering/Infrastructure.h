@@ -24,6 +24,12 @@ public:
     static UINT GetOutputDisplayModes(IDXGIOutput* output, enum DXGI_FORMAT format, UINT flags, std::vector<DXGI_MODE_DESC>& modes);
 
 private:
+    void CreateFactory();
+    void CreateDevice(enum D3D_FEATURE_LEVEL featureLevel);
+    void GetDescriptorSizes();
+    void Get4xMsaaQualityLevels(enum DXGI_FORMAT format);
+
+private:
     Microsoft::WRL::ComPtr<IDXGIFactory4> m_Factory;
     Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
     UINT m_RtvDescriptorSize, m_DsvDescriptorSize, m_CbvSrvUavDescriptorSize;
