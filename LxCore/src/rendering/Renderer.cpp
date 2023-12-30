@@ -2,7 +2,8 @@
 #include "LxCore/rendering/Infrastructure.h"
 
 Renderer::Renderer(Infrastructure& infrastructure)
-    : m_infrastructure(infrastructure)
+    : m_Infrastructure(infrastructure)
 {
-    infrastructure.CreateFence(&m_fence);
+    infrastructure.CreateFence(&m_Fence);
+    infrastructure.CreateCommandObjects(&m_CommandQueue, &m_CommandAllocator, &m_CommandList);
 }

@@ -3,6 +3,9 @@
 #include <wrl.h>
 
 struct ID3D12Fence;
+struct ID3D12CommandQueue;
+struct ID3D12CommandAllocator;
+struct ID3D12GraphicsCommandList;
 
 struct IDXGIAdapter;
 struct IDXGIOutput;
@@ -18,6 +21,7 @@ public:
     ~Infrastructure() = default;
 
     void CreateFence(ID3D12Fence** fence) const;
+    void CreateCommandObjects(ID3D12CommandQueue** commandQueue, ID3D12CommandAllocator** commandAllocator, ID3D12GraphicsCommandList** commandList) const;
 
     UINT GetAdapters(std::vector<IDXGIAdapter*>& adapters) const;
     static UINT GetAdapterOutputs(IDXGIAdapter* adapter, std::vector<IDXGIOutput*>& outputs);

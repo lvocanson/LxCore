@@ -20,6 +20,21 @@ void Infrastructure::CreateFence(ID3D12Fence** fence) const
     LxHrAssert(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence)), "Failed to create fence");
 }
 
+void Infrastructure::CreateCommandObjects(ID3D12CommandQueue** commandQueue, ID3D12CommandAllocator** commandAllocator, ID3D12GraphicsCommandList** commandList) const
+{
+    D3D12_COMMAND_QUEUE_DESC queueDesc
+    {
+        .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+        .Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
+        .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
+        .NodeMask = 0
+    };
+    LxHrAssert(m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(commandQueue)), "Failed to create command queue");
+    LxHrAssert(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator)), "Failed to create command allocator");
+    LxHrAssert(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, *commandAllocator, nullptr, IID_PPV_ARGS(commandList)), "Failed to create command list");
+    (*commandList)->Close();
+}
+
 UINT Infrastructure::GetAdapters(std::vector<IDXGIAdapter*>& adapters) const
 {
     UINT count = 0;
