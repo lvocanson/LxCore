@@ -14,6 +14,7 @@ public:
     HWND GetHandle() const { return m_Handle; }
     void SetOnClose(Callback callback) { m_OnClose = callback; }
 
+    void SetTitle(const wchar_t* title) { SetWindowTextW(m_Handle, title); }
     LONG GetWidth() const { return m_Size.cx; }
     LONG GetHeight() const { return m_Size.cy; }
 
