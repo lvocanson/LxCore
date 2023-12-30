@@ -7,6 +7,7 @@
 // DirectX
 #include <dxgi1_6.h>    // DirectX Graphics Infrastructure
 #include <d3d12.h>      // DirectX 12
+#include <d3dcommon.h>  // DirectX Common
 
 // Standard Library
 #include <vector>

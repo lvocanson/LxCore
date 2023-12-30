@@ -5,12 +5,14 @@
 struct IDXGIAdapter;
 struct IDXGIOutput;
 struct DXGI_MODE_DESC;
+
 struct IDXGIFactory4;
+struct IDXGIDevice;
 
 class Infrastructure
 {
 public:
-    Infrastructure();
+    Infrastructure(enum D3D_FEATURE_LEVEL featureLevel);
     ~Infrastructure() = default;
 
     UINT GetAdapters(std::vector<IDXGIAdapter*>& adapters) const;
@@ -19,4 +21,5 @@ public:
     
 private:
     Microsoft::WRL::ComPtr<IDXGIFactory4> m_Factory;
+    Microsoft::WRL::ComPtr<IDXGIDevice> m_Device;
 };

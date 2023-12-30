@@ -1,8 +1,24 @@
 #include "LxCore/rendering/Infrastructure.h"
 
-Infrastructure::Infrastructure()
+Infrastructure::Infrastructure(enum D3D_FEATURE_LEVEL featureLevel)
 {
+#if defined(_DEBUG) || defined(DEBUG)
+    ID3D12Debug* debugController;
+    LxHrAssert(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)), "Failed to create debug controller");
+    debugController->EnableDebugLayer();
+    debugController->Release();
+#endif
+
     LxHrAssert(CreateDXGIFactory1(IID_PPV_ARGS(&m_Factory)), "Failed to create DXGI factory");
+
+    // Create a hardware device if possible, otherwise create a WARP device
+    HRESULT hr = D3D12CreateDevice(nullptr, featureLevel, IID_PPV_ARGS(&m_Device));
+    if (FAILED(hr)) 
+    {
+        IDXGIAdapter* adapter;
+        LxHrAssert(m_Factory->EnumWarpAdapter(IID_PPV_ARGS(&adapter)), "Failed to create WARP adapter");
+        LxHrAssert(D3D12CreateDevice(adapter, featureLevel, IID_PPV_ARGS(&m_Device)), "Failed to create WARP device");
+    }
 }
 
 UINT Infrastructure::GetAdapters(std::vector<IDXGIAdapter*>& adapters) const
