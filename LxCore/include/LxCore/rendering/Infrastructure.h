@@ -27,4 +27,5 @@ private:
     Microsoft::WRL::ComPtr<IDXGIFactory4> m_Factory;
     Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
     UINT m_RtvDescriptorSize, m_DsvDescriptorSize, m_CbvSrvUavDescriptorSize;
+    UINT m_4xMsaaQuality;
 };

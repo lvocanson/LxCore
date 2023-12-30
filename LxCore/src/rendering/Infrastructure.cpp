@@ -23,6 +23,16 @@ Infrastructure::Infrastructure(enum D3D_FEATURE_LEVEL featureLevel)
     m_RtvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     m_DsvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
     m_CbvSrvUavDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+    D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels
+    {
+        .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+        .SampleCount = 4,
+        .Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE
+    };
+    LxHrAssert(m_Device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &msQualityLevels, sizeof(msQualityLevels)), "Failed to check multisample quality levels");
+    m_4xMsaaQuality = msQualityLevels.NumQualityLevels;
+    LxAssert(m_4xMsaaQuality > 0, "Unexpected 4x MSAA quality level");
 }
 
 void Infrastructure::CreateFence(ID3D12Fence** fence) const
