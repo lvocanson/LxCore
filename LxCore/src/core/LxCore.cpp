@@ -20,6 +20,7 @@ void LxCore::Shutdown()
 LxCore::LxCore(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     : m_MainWnd(hInstance, nCmdShow, Shutdown)
     , m_Infrastructure(D3D_FEATURE_LEVEL_11_0)
+    , m_Renderer(m_Infrastructure, m_MainWnd)
 {
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "Window.h"
 #include "LxCore/rendering/Infrastructure.h"
+#include "LxCore/rendering/Renderer.h"
 
 class LxCore
 {
@@ -23,4 +24,5 @@ private:
     bool m_Running = false;
     Window m_MainWnd;
     Infrastructure m_Infrastructure;
+    Renderer m_Renderer;
 };

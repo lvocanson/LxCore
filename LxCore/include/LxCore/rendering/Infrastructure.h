@@ -6,6 +6,8 @@ struct ID3D12Fence;
 struct ID3D12CommandQueue;
 struct ID3D12CommandAllocator;
 struct ID3D12GraphicsCommandList;
+struct DXGI_SWAP_CHAIN_DESC;
+struct IDXGISwapChain;
 
 struct IDXGIAdapter;
 struct IDXGIOutput;
@@ -22,6 +24,7 @@ public:
 
     void CreateFence(ID3D12Fence** fence) const;
     void CreateCommandObjects(ID3D12CommandQueue** commandQueue, ID3D12CommandAllocator** commandAllocator, ID3D12GraphicsCommandList** commandList) const;
+    void CreateSwapChain(ID3D12CommandQueue* commandQueue, DXGI_SWAP_CHAIN_DESC* swapChainDesc, IDXGISwapChain** swapChain) const;
 
     UINT GetAdapters(std::vector<IDXGIAdapter*>& adapters) const;
     static UINT GetAdapterOutputs(IDXGIAdapter* adapter, std::vector<IDXGIOutput*>& outputs);

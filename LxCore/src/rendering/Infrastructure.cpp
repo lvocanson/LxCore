@@ -35,6 +35,11 @@ void Infrastructure::CreateCommandObjects(ID3D12CommandQueue** commandQueue, ID3
     (*commandList)->Close();
 }
 
+void Infrastructure::CreateSwapChain(ID3D12CommandQueue* commandQueue, DXGI_SWAP_CHAIN_DESC* swapChainDesc, IDXGISwapChain** swapChain) const
+{
+    LxHrAssert(m_Factory->CreateSwapChain(commandQueue, swapChainDesc, swapChain), "Failed to create swap chain");
+}
+
 UINT Infrastructure::GetAdapters(std::vector<IDXGIAdapter*>& adapters) const
 {
     UINT count = 0;
