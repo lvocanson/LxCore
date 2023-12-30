@@ -19,6 +19,11 @@ Window::Window(HINSTANCE hInstance, int nCmdShow, Callback onClose)
     SetWindowLongPtrW(m_Handle, GWLP_USERDATA, (LONG_PTR)this);
     ShowWindow(m_Handle, nCmdShow);
     UpdateWindow(m_Handle);
+
+    // Get the window size
+    RECT rect;
+    GetClientRect(m_Handle, &rect);
+    m_Size = {rect.right - rect.left, rect.bottom - rect.top};
 }
 
 Window::~Window()
@@ -86,6 +91,12 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         if (window->m_OnClose)
             window->m_OnClose();
         PostQuitMessage(0);
+        break;
+    }
+    case WM_SIZE:
+    {
+        Window* window = GetWindow(hWnd);
+        window->m_Size = {LOWORD(lParam), HIWORD(lParam)};
         break;
     }
     default:
