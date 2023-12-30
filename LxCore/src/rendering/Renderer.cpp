@@ -46,20 +46,18 @@ Renderer::Renderer(Infrastructure& infrastructure, Window& window)
     infrastructure.CreateDescriptorHeap(m_SwapChainBufferCount, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, false, &m_RtvHeap);
     infrastructure.CreateDescriptorHeap(1, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, true, &m_DsvHeap);
 
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle = m_RtvHeap->GetCPUDescriptorHandleForHeapStart();
+    CD3DX12_CPU_DESCRIPTOR_HANDLE heapHandle(m_RtvHeap->GetCPUDescriptorHandleForHeapStart());
     for (UINT i = 0; i < m_SwapChainBufferCount; ++i)
     {
         LxHrAssert(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_SwapChainBuffers[i])), "Failed to get swap chain buffer");
-        infrastructure.CreateRenderTargetView(m_SwapChainBuffers[i].Get(), nullptr, rtvHeapHandle);
-        rtvHeapHandle.ptr += m_RtvSize;
+        infrastructure.CreateRenderTargetView(m_SwapChainBuffers[i].Get(), nullptr, heapHandle);
+        heapHandle.ptr += m_RtvSize;
     }
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Renderer::GetBackBufferView() const
 {
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvStart = m_RtvHeap->GetCPUDescriptorHandleForHeapStart();
-    rtvStart.ptr += (SIZE_T)m_CurrBackBuffer * m_RtvSize;
-    return rtvStart;
+    return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_RtvHeap->GetCPUDescriptorHandleForHeapStart(), m_CurrBackBuffer, m_RtvSize);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Renderer::GetDepthStencilView() const
