@@ -13,12 +13,21 @@ Infrastructure::Infrastructure(enum D3D_FEATURE_LEVEL featureLevel)
 
     // Create a hardware device if possible, otherwise create a WARP device
     HRESULT hr = D3D12CreateDevice(nullptr, featureLevel, IID_PPV_ARGS(&m_Device));
-    if (FAILED(hr)) 
+    if (FAILED(hr))
     {
         IDXGIAdapter* adapter;
         LxHrAssert(m_Factory->EnumWarpAdapter(IID_PPV_ARGS(&adapter)), "Failed to create WARP adapter");
         LxHrAssert(D3D12CreateDevice(adapter, featureLevel, IID_PPV_ARGS(&m_Device)), "Failed to create WARP device");
     }
+
+    m_RtvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_DsvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    m_CbvSrvUavDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+}
+
+void Infrastructure::CreateFence(ID3D12Fence** fence) const
+{
+    LxHrAssert(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence)), "Failed to create fence");
 }
 
 UINT Infrastructure::GetAdapters(std::vector<IDXGIAdapter*>& adapters) const
