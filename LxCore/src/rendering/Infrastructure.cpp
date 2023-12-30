@@ -11,7 +11,6 @@ Infrastructure::Infrastructure(enum D3D_FEATURE_LEVEL featureLevel)
 
     CreateFactory();
     CreateDevice(featureLevel);
-    GetDescriptorSizes();
     Get4xMsaaQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM);
 }
 
@@ -38,6 +37,28 @@ void Infrastructure::CreateCommandObjects(ID3D12CommandQueue** commandQueue, ID3
 void Infrastructure::CreateSwapChain(ID3D12CommandQueue* commandQueue, DXGI_SWAP_CHAIN_DESC* swapChainDesc, IDXGISwapChain** swapChain) const
 {
     LxHrAssert(m_Factory->CreateSwapChain(commandQueue, swapChainDesc, swapChain), "Failed to create swap chain");
+}
+
+UINT Infrastructure::GetDescriptorSize(enum D3D12_DESCRIPTOR_HEAP_TYPE type) const
+{
+    return m_Device->GetDescriptorHandleIncrementSize(type);
+}
+
+void Infrastructure::CreateDescriptorHeap(UINT numDescriptors, enum D3D12_DESCRIPTOR_HEAP_TYPE type, bool shaderVisible, ID3D12DescriptorHeap** descriptorHeap) const
+{
+    D3D12_DESCRIPTOR_HEAP_DESC heapDesc
+    {
+        .Type = type,
+        .NumDescriptors = numDescriptors,
+        .Flags = shaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+        .NodeMask = 0
+    };
+    LxHrAssert(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(descriptorHeap)), "Failed to create descriptor heap");
+}
+
+void Infrastructure::CreateRenderTargetView(ID3D12Resource* resource, D3D12_RENDER_TARGET_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE& handle) const
+{
+    m_Device->CreateRenderTargetView(resource, desc, handle);
 }
 
 UINT Infrastructure::GetAdapters(std::vector<IDXGIAdapter*>& adapters) const
@@ -84,13 +105,6 @@ inline void Infrastructure::CreateDevice(enum D3D_FEATURE_LEVEL featureLevel)
         LxHrAssert(m_Factory->EnumWarpAdapter(IID_PPV_ARGS(&adapter)), "Failed to create WARP adapter");
         LxHrAssert(D3D12CreateDevice(adapter, featureLevel, IID_PPV_ARGS(&m_Device)), "Failed to create WARP device");
     }
-}
-
-inline void Infrastructure::GetDescriptorSizes()
-{
-    m_RtvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    m_DsvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-    m_CbvSrvUavDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 inline void Infrastructure::Get4xMsaaQualityLevels(enum DXGI_FORMAT format)
