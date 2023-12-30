@@ -18,7 +18,7 @@ Renderer::Renderer(Infrastructure& infrastructure, Window& window)
                 .Numerator = 60,
                 .Denominator = 1
             },
-            .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+            .Format = DXGI_FORMAT_R8G8B8A8_UNORM, // TODO: Make this a parameter/variable
             .ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
             .Scaling = DXGI_MODE_SCALING_UNSPECIFIED
         },
@@ -41,10 +41,10 @@ Renderer::Renderer(Infrastructure& infrastructure, Window& window)
     m_DsvSize = infrastructure.GetDescriptorSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
     m_CbvSrvUavSize = infrastructure.GetDescriptorSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    m_4xMsaaQuality = infrastructure.GetMsaaQuality(DXGI_FORMAT_R8G8B8A8_UNORM, 4);
+    m_4xMsaaQuality = infrastructure.GetMsaaQuality(DXGI_FORMAT_R8G8B8A8_UNORM, 4); // TODO: Make this parameters/variables
 
     infrastructure.CreateDescriptorHeap(m_SwapChainBufferCount, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, false, &m_RtvHeap);
-    infrastructure.CreateDescriptorHeap(1, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, true, &m_DsvHeap);
+    infrastructure.CreateDescriptorHeap(1, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, false, &m_DsvHeap);
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE heapHandle(m_RtvHeap->GetCPUDescriptorHandleForHeapStart());
     for (UINT i = 0; i < m_SwapChainBufferCount; ++i)
@@ -53,6 +53,40 @@ Renderer::Renderer(Infrastructure& infrastructure, Window& window)
         infrastructure.CreateRenderTargetView(m_SwapChainBuffers[i].Get(), nullptr, heapHandle);
         heapHandle.ptr += m_RtvSize;
     }
+
+    D3D12_RESOURCE_DESC depthStencilDesc
+    {
+        .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+        .Alignment = 0,
+        .Width = (UINT)window.GetWidth(),
+        .Height = (UINT)window.GetHeight(),
+        .DepthOrArraySize = 1,
+        .MipLevels = 1,
+        .Format = DXGI_FORMAT_R24G8_TYPELESS, // TODO: Make this a parameter/variable
+        .SampleDesc
+        {
+            .Count = 1,
+            .Quality = m_4xMsaaQuality - 1
+        },
+        .Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+        .Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
+    };
+    D3D12_CLEAR_VALUE optClear
+    {
+        .Format = DXGI_FORMAT_R24G8_TYPELESS, // TODO: Make this a parameter/variable
+        .DepthStencil
+        {
+            .Depth = 1.f,
+            .Stencil = 0
+        }
+    };
+    D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+    infrastructure.CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilDesc, D3D12_RESOURCE_STATE_COMMON, &optClear, &m_DepthStencilBuffer);
+
+    heapHandle = m_DsvHeap->GetCPUDescriptorHandleForHeapStart();
+    infrastructure.CreateDepthStencilView(m_DepthStencilBuffer.Get(), nullptr, heapHandle);
+
+    m_CommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_DepthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Renderer::GetBackBufferView() const

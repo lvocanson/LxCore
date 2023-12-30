@@ -60,6 +60,16 @@ void Infrastructure::CreateRenderTargetView(ID3D12Resource* resource, D3D12_REND
     m_Device->CreateRenderTargetView(resource, desc, handle);
 }
 
+void Infrastructure::CreateCommittedResource(D3D12_HEAP_PROPERTIES* heapProperties, enum D3D12_HEAP_FLAGS heapFlags, D3D12_RESOURCE_DESC* resourceDesc, enum D3D12_RESOURCE_STATES initialState, D3D12_CLEAR_VALUE* clearValue, ID3D12Resource** resource) const
+{
+LxHrAssert(m_Device->CreateCommittedResource(heapProperties, heapFlags, resourceDesc, initialState, clearValue, IID_PPV_ARGS(resource)), "Failed to create committed resource");
+}
+
+void Infrastructure::CreateDepthStencilView(ID3D12Resource* resource, D3D12_DEPTH_STENCIL_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE& handle) const
+{
+    m_Device->CreateDepthStencilView(resource, desc, handle);
+}
+
 UINT Infrastructure::GetAdapters(std::vector<IDXGIAdapter*>& adapters) const
 {
     UINT count = 0;

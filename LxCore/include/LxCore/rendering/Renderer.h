@@ -36,4 +36,5 @@ private:
     static const char m_SwapChainBufferCount = 2;
     char m_CurrBackBuffer = 0;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_SwapChainBuffers[m_SwapChainBufferCount];
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_DepthStencilBuffer;
 };

@@ -14,6 +14,9 @@ struct ID3D12Resource;
 struct D3D12_RENDER_TARGET_VIEW_DESC;
 struct D3D12_CPU_DESCRIPTOR_HANDLE;
 
+
+struct D3D12_DEPTH_STENCIL_VIEW_DESC;
+
 struct IDXGIAdapter;
 struct IDXGIOutput;
 struct DXGI_MODE_DESC;
@@ -35,6 +38,9 @@ public:
     UINT GetMsaaQuality(enum DXGI_FORMAT format, UINT sampleCount) const;
     void CreateDescriptorHeap(UINT numDescriptors, enum D3D12_DESCRIPTOR_HEAP_TYPE type, bool shaderVisible, ID3D12DescriptorHeap** descriptorHeap) const;
     void CreateRenderTargetView(ID3D12Resource* resource, D3D12_RENDER_TARGET_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE& handle) const;
+
+    void CreateCommittedResource(D3D12_HEAP_PROPERTIES* heapProperties, enum D3D12_HEAP_FLAGS heapFlags, D3D12_RESOURCE_DESC* resourceDesc, enum D3D12_RESOURCE_STATES initialState, D3D12_CLEAR_VALUE* clearValue, ID3D12Resource** resource) const;
+    void CreateDepthStencilView(ID3D12Resource* resource, D3D12_DEPTH_STENCIL_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE& handle) const;
 
     UINT GetAdapters(std::vector<IDXGIAdapter*>& adapters) const;
     static UINT GetAdapterOutputs(IDXGIAdapter* adapter, std::vector<IDXGIOutput*>& outputs);
