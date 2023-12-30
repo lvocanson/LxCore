@@ -62,10 +62,10 @@ Renderer::Renderer(Infrastructure& infrastructure, Window& window)
         .Height = (UINT)window.GetHeight(),
         .DepthOrArraySize = 1,
         .MipLevels = 1,
-        .Format = DXGI_FORMAT_R24G8_TYPELESS, // TODO: Make this a parameter/variable
+        .Format = DXGI_FORMAT_D16_UNORM, // TODO: Make this a parameter/variable
         .SampleDesc
         {
-            .Count = 1,
+            .Count = 4,
             .Quality = m_4xMsaaQuality - 1
         },
         .Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
@@ -73,7 +73,7 @@ Renderer::Renderer(Infrastructure& infrastructure, Window& window)
     };
     D3D12_CLEAR_VALUE optClear
     {
-        .Format = DXGI_FORMAT_R24G8_TYPELESS, // TODO: Make this a parameter/variable
+        .Format = DXGI_FORMAT_D16_UNORM, // TODO: Make this a parameter/variable
         .DepthStencil
         {
             .Depth = 1.f,
@@ -81,12 +81,21 @@ Renderer::Renderer(Infrastructure& infrastructure, Window& window)
         }
     };
     D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    infrastructure.CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilDesc, D3D12_RESOURCE_STATE_COMMON, &optClear, &m_DepthStencilBuffer);
+    infrastructure.CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &optClear, &m_DepthStencilBuffer);
 
     heapHandle = m_DsvHeap->GetCPUDescriptorHandleForHeapStart();
     infrastructure.CreateDepthStencilView(m_DepthStencilBuffer.Get(), nullptr, heapHandle);
 
-    m_CommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_DepthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+    D3D12_VIEWPORT viewport
+    {
+        .TopLeftX = 0.f,
+        .TopLeftY = 0.f,
+        .Width = (float)window.GetWidth(),
+        .Height = (float)window.GetHeight(),
+        .MinDepth = 0.f,
+        .MaxDepth = 1.f
+    };
+    m_CommandList->RSSetViewports(1, &viewport);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE Renderer::GetBackBufferView() const
