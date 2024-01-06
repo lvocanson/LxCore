@@ -1,8 +1,8 @@
 #include "LxCore/rendering/Renderer.h"
-#include "LxCore/rendering/Renderer.h"
 #include "LxCore/core/Window.h"
 
 Renderer::Renderer(Window& window)
+    : m_Window(window)
 {
 #if defined(_DEBUG) || defined(DEBUG)
     ID3D12Debug* debugController;
@@ -13,45 +13,17 @@ Renderer::Renderer(Window& window)
 
     CreateFactory();
     CreateDevice(D3D_FEATURE_LEVEL_11_0);
-    
-    CreateFence(&m_Fence);
-    CreateCommandObjects(&m_CommandQueue, &m_CommandAllocator, &m_CommandList);
 
-    DXGI_SWAP_CHAIN_DESC scd
-    {
-        .BufferDesc
-        {
-            .Width = 0,
-            .Height = 0,
-            .RefreshRate
-            {
-                .Numerator = 60,
-                .Denominator = 1
-            },
-            .Format = DXGI_FORMAT_R8G8B8A8_UNORM, // TODO: Make this a parameter/variable
-            .ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
-            .Scaling = DXGI_MODE_SCALING_UNSPECIFIED
-        },
-        .SampleDesc
-        {
-            .Count = 1,
-            .Quality = 0
-        },
-        .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-        .BufferCount = 2,
-        .OutputWindow = window.GetHandle(),
-        .Windowed = TRUE,
-        .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
-        .Flags = 0
+    CreateFence();
+    CreateCommandObjects();
 
-    };
-    CreateSwapChain(m_CommandQueue.Get(), &scd, &m_SwapChain);
+    CreateSwapChain();
 
-    m_RtvSize = GetDescriptorSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    m_DsvSize = GetDescriptorSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-    m_CbvSrvUavSize = GetDescriptorSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    m_RtvSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_DsvSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    m_CbvSrvUavSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    m_4xMsaaQuality = GetMsaaQuality(DXGI_FORMAT_R8G8B8A8_UNORM, 4); // TODO: Make this parameters/variables
+    Get4xMsaaQuality(DXGI_FORMAT_R8G8B8A8_UNORM); // TODO: Make this a parameter/variable
 
     CreateDescriptorHeap(m_SwapChainBufferCount, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, false, &m_RtvHeap);
     CreateDescriptorHeap(1, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, false, &m_DsvHeap);
@@ -60,7 +32,7 @@ Renderer::Renderer(Window& window)
     for (UINT i = 0; i < m_SwapChainBufferCount; ++i)
     {
         LxHrAssert(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_SwapChainBuffers[i])), "Failed to get swap chain buffer");
-        CreateRenderTargetView(m_SwapChainBuffers[i].Get(), nullptr, heapHandle);
+        m_Device->CreateRenderTargetView(m_SwapChainBuffers[i].Get(), nullptr, heapHandle);
         heapHandle.ptr += m_RtvSize;
     }
 
@@ -91,10 +63,10 @@ Renderer::Renderer(Window& window)
         }
     };
     D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &optClear, &m_DepthStencilBuffer);
+    LxHrAssert(m_Device->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &optClear, IID_PPV_ARGS(&m_DepthStencilBuffer)), "Failed to create depth stencil buffer");
 
     heapHandle = m_DsvHeap->GetCPUDescriptorHandleForHeapStart();
-    CreateDepthStencilView(m_DepthStencilBuffer.Get(), nullptr, heapHandle);
+    m_Device->CreateDepthStencilView(m_DepthStencilBuffer.Get(), nullptr, heapHandle);
 
     D3D12_VIEWPORT viewport
     {
@@ -108,12 +80,94 @@ Renderer::Renderer(Window& window)
     m_CommandList->RSSetViewports(1, &viewport);
 }
 
-void Renderer::CreateFence(ID3D12Fence** fence) const
+void Renderer::OnResize()
 {
-    LxHrAssert(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence)), "Failed to create fence");
+    LxAssert(m_Device != nullptr, "Device not created");
+
+    FlushCommandQueue();
+
+    // Reset for recreation
+    LxHrAssert(m_CommandList->Reset(m_CommandAllocator.Get(), nullptr), "Failed to reset command list");
+    for (UINT i = 0; i < m_SwapChainBufferCount; ++i)
+    {
+        m_SwapChainBuffers[i].Reset();
+    }
+    m_DepthStencilBuffer.Reset();
+
+    LxHrAssert(m_SwapChain->ResizeBuffers(
+        m_SwapChainBufferCount,
+        (UINT)m_Window.GetSize().cx,
+        (UINT)m_Window.GetSize().cy,
+        DXGI_FORMAT_R8G8B8A8_UNORM, // TODO: Make this a parameter/variable
+        DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH), "Failed to resize swap chain buffers");
+
+    m_CurrBackBuffer = 0;
+    CD3DX12_CPU_DESCRIPTOR_HANDLE heapHandle(m_RtvHeap->GetCPUDescriptorHandleForHeapStart());
+    for (UINT i = 0; i < m_SwapChainBufferCount; ++i)
+    {
+        LxHrAssert(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_SwapChainBuffers[i])), "Failed to get swap chain buffer");
+        m_Device->CreateRenderTargetView(m_SwapChainBuffers[i].Get(), nullptr, heapHandle);
+        heapHandle.ptr += m_RtvSize;
+    }
+
+    D3D12_RESOURCE_DESC depthStencilDesc
+    {
+        .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+        .Alignment = 0,
+        .Width = (UINT)m_Window.GetSize().cx,
+        .Height = (UINT)m_Window.GetSize().cy,
+        .DepthOrArraySize = 1,
+        .MipLevels = 1,
+        .Format = DXGI_FORMAT_D16_UNORM, // TODO: Make this a parameter/variable
+        .SampleDesc
+        {
+            .Count = 4,
+            .Quality = m_4xMsaaQuality - 1
+        },
+        .Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+        .Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
+    };
+
+    D3D12_CLEAR_VALUE optClear
+    {
+        .Format = DXGI_FORMAT_D16_UNORM, // TODO: Make this a parameter/variable
+        .DepthStencil
+        {
+            .Depth = 1.f,
+            .Stencil = 0
+        }
+    };
+
+    D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+    LxHrAssert(m_Device->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &optClear, IID_PPV_ARGS(&m_DepthStencilBuffer)), "Failed to create depth stencil buffer");
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHeapHandle(m_DsvHeap->GetCPUDescriptorHandleForHeapStart());
+    m_Device->CreateDepthStencilView(m_DepthStencilBuffer.Get(), nullptr, dsvHeapHandle);
+
+    D3D12_VIEWPORT viewport
+    {
+        .TopLeftX = 0.f,
+        .TopLeftY = 0.f,
+        .Width = (float)m_Window.GetSize().cx,
+        .Height = (float)m_Window.GetSize().cy,
+        .MinDepth = 0.f,
+        .MaxDepth = 1.f
+    };
+    m_CommandList->RSSetViewports(1, &viewport);
+
+    LxHrAssert(m_CommandList->Close(), "Failed to close command list");
+    ID3D12CommandList* commandLists[] = {m_CommandList.Get()};
+    m_CommandQueue->ExecuteCommandLists(1, commandLists);
+
+    FlushCommandQueue();
 }
 
-void Renderer::CreateCommandObjects(ID3D12CommandQueue** commandQueue, ID3D12CommandAllocator** commandAllocator, ID3D12GraphicsCommandList** commandList) const
+void Renderer::CreateFence()
+{
+    LxHrAssert(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)), "Failed to create fence");
+}
+
+void Renderer::CreateCommandObjects()
 {
     D3D12_COMMAND_QUEUE_DESC queueDesc
     {
@@ -122,20 +176,43 @@ void Renderer::CreateCommandObjects(ID3D12CommandQueue** commandQueue, ID3D12Com
         .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
         .NodeMask = 0
     };
-    LxHrAssert(m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(commandQueue)), "Failed to create command queue");
-    LxHrAssert(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator)), "Failed to create command allocator");
-    LxHrAssert(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, *commandAllocator, nullptr, IID_PPV_ARGS(commandList)), "Failed to create command list");
-    (*commandList)->Close();
+    LxHrAssert(m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CommandQueue)), "Failed to create command queue");
+    LxHrAssert(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)), "Failed to create command allocator");
+    LxHrAssert(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&m_CommandList)), "Failed to create command list");
+    m_CommandList->Close();
 }
 
-void Renderer::CreateSwapChain(ID3D12CommandQueue* commandQueue, DXGI_SWAP_CHAIN_DESC* swapChainDesc, IDXGISwapChain** swapChain) const
+void Renderer::CreateSwapChain()
 {
-    LxHrAssert(m_Factory->CreateSwapChain(commandQueue, swapChainDesc, swapChain), "Failed to create swap chain");
-}
+    DXGI_SWAP_CHAIN_DESC scd
+    {
+        .BufferDesc
+        {
+            .Width = 0,
+            .Height = 0,
+            .RefreshRate
+            {
+                .Numerator = 60,
+                .Denominator = 1
+            },
+            .Format = DXGI_FORMAT_R8G8B8A8_UNORM, // TODO: Make this a parameter/variable
+            .ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
+            .Scaling = DXGI_MODE_SCALING_UNSPECIFIED
+        },
+        .SampleDesc
+        {
+            .Count = 1,
+            .Quality = 0
+        },
+        .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+        .BufferCount = 2,
+        .OutputWindow = m_Window.GetHandle(),
+        .Windowed = TRUE,
+        .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
+        .Flags = 0
 
-UINT Renderer::GetDescriptorSize(enum D3D12_DESCRIPTOR_HEAP_TYPE type) const
-{
-    return m_Device->GetDescriptorHandleIncrementSize(type);
+    };
+    LxHrAssert(m_Factory->CreateSwapChain(m_CommandQueue.Get(), &scd, &m_SwapChain), "Failed to create swap chain");
 }
 
 void Renderer::CreateDescriptorHeap(UINT numDescriptors, enum D3D12_DESCRIPTOR_HEAP_TYPE type, bool shaderVisible, ID3D12DescriptorHeap** descriptorHeap) const
@@ -148,21 +225,6 @@ void Renderer::CreateDescriptorHeap(UINT numDescriptors, enum D3D12_DESCRIPTOR_H
         .NodeMask = 0
     };
     LxHrAssert(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(descriptorHeap)), "Failed to create descriptor heap");
-}
-
-void Renderer::CreateRenderTargetView(ID3D12Resource* resource, D3D12_RENDER_TARGET_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE& handle) const
-{
-    m_Device->CreateRenderTargetView(resource, desc, handle);
-}
-
-void Renderer::CreateCommittedResource(D3D12_HEAP_PROPERTIES* heapProperties, enum D3D12_HEAP_FLAGS heapFlags, D3D12_RESOURCE_DESC* resourceDesc, enum D3D12_RESOURCE_STATES initialState, D3D12_CLEAR_VALUE* clearValue, ID3D12Resource** resource) const
-{
-    LxHrAssert(m_Device->CreateCommittedResource(heapProperties, heapFlags, resourceDesc, initialState, clearValue, IID_PPV_ARGS(resource)), "Failed to create committed resource");
-}
-
-void Renderer::CreateDepthStencilView(ID3D12Resource* resource, D3D12_DEPTH_STENCIL_VIEW_DESC* desc, D3D12_CPU_DESCRIPTOR_HANDLE& handle) const
-{
-    m_Device->CreateDepthStencilView(resource, desc, handle);
 }
 
 UINT Renderer::GetAdapters(std::vector<IDXGIAdapter*>& adapters) const
@@ -211,25 +273,31 @@ inline void Renderer::CreateDevice(enum D3D_FEATURE_LEVEL featureLevel)
     }
 }
 
-UINT Renderer::GetMsaaQuality(enum DXGI_FORMAT format, UINT sampleCount) const
+void Renderer::Get4xMsaaQuality(enum DXGI_FORMAT format)
 {
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels
     {
         .Format = format,
-        .SampleCount = sampleCount,
+        .SampleCount = 4,
         .Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE
     };
     LxHrAssert(m_Device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &msQualityLevels, sizeof(msQualityLevels)), "Failed to check multisample quality levels");
     LxAssert(msQualityLevels.NumQualityLevels > 0, "Unexpected 4x MSAA quality level");
-    return msQualityLevels.NumQualityLevels;
+    m_4xMsaaQuality = msQualityLevels.NumQualityLevels;
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE Renderer::GetBackBufferView() const
+void Renderer::FlushCommandQueue()
 {
-    return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_RtvHeap->GetCPUDescriptorHandleForHeapStart(), m_CurrBackBuffer, m_RtvSize);
-}
+    m_CurrFence++;
+    LxHrAssert(m_CommandQueue->Signal(m_Fence.Get(), m_CurrFence), "Failed to signal fence");
 
-D3D12_CPU_DESCRIPTOR_HANDLE Renderer::GetDepthStencilView() const
-{
-    return m_DsvHeap->GetCPUDescriptorHandleForHeapStart();
+    if (m_Fence->GetCompletedValue() < m_CurrFence)
+    {
+        HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+        LxAssert(eventHandle != nullptr, "Failed to create event handle");
+
+        LxHrAssert(m_Fence->SetEventOnCompletion(m_CurrFence, eventHandle), "Failed to set event on completion");
+        WaitForSingleObject(eventHandle, INFINITE);
+        CloseHandle(eventHandle);
+    }
 }
