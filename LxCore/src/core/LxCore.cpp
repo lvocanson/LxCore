@@ -1,6 +1,5 @@
 #include "LxCore\core\LxCore.h"
 #include "LxCore\core\Window.h"
-#include "LxCore/rendering/Infrastructure.h"
 #include <sstream>
 
 void LxCore::InitAndRun(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
@@ -33,8 +32,7 @@ void LxCore::Shutdown()
 
 LxCore::LxCore(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     : m_MainWnd(hInstance, nCmdShow)
-    , m_Infrastructure(D3D_FEATURE_LEVEL_11_0)
-    , m_Renderer(m_Infrastructure, m_MainWnd)
+    , m_Renderer(m_MainWnd)
     , m_GameTimer()
 {
     m_MainWnd.SetOnClose(Shutdown);

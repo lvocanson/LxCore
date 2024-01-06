@@ -6,7 +6,6 @@
     <ClInclude Include="include\LxCore\core\LxCore.h" />
     <ClInclude Include="include\LxCore\core\Window.h" />
     <ClInclude Include="include\LxCore\WindowsCheck.h" />
-    <ClInclude Include="include\LxCore\rendering\Infrastructure.h" />
     <ClInclude Include="include\LxCore\rendering\Renderer.h" />
     <ClInclude Include="include\LxCore\core\Timer.h" />
   </ItemGroup>
@@ -14,7 +13,6 @@
     <ClCompile Include="src\pch.cpp" />
     <ClCompile Include="src\core\LxCore.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
-    <ClCompile Include="src\rendering\Infrastructure.cpp" />
     <ClCompile Include="src\rendering\Renderer.cpp" />
     <ClCompile Include="src\core\Timer.cpp" />
   </ItemGroup>

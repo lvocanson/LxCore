@@ -1,6 +1,5 @@
 #pragma once
 #include "Window.h"
-#include "LxCore/rendering/Infrastructure.h"
 #include "LxCore/rendering/Renderer.h"
 #include "Timer.h"
 
@@ -31,7 +30,6 @@ private:
     bool m_Paused = false;
 
     Window m_MainWnd;
-    Infrastructure m_Infrastructure;
     Renderer m_Renderer;
 
     Timer m_GameTimer;

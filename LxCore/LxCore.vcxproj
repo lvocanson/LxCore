@@ -15,7 +15,6 @@
     <ClInclude Include="include\LxCore\Engine.h" />
     <ClInclude Include="include\LxCore\core\LxCore.h" />
     <ClInclude Include="include\LxCore\core\Window.h" />
-    <ClInclude Include="include\LxCore\rendering\Infrastructure.h" />
     <ClInclude Include="include\LxCore\rendering\Renderer.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="include\LxCore\WindowsCheck.h" />
@@ -28,7 +27,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\rendering\Infrastructure.cpp" />
     <ClCompile Include="src\rendering\Renderer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
