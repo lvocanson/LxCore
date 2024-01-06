@@ -58,8 +58,8 @@ Renderer::Renderer(Infrastructure& infrastructure, Window& window)
     {
         .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
         .Alignment = 0,
-        .Width = (UINT)window.GetWidth(),
-        .Height = (UINT)window.GetHeight(),
+        .Width = (UINT)window.GetSize().cx,
+        .Height = (UINT)window.GetSize().cy,
         .DepthOrArraySize = 1,
         .MipLevels = 1,
         .Format = DXGI_FORMAT_D16_UNORM, // TODO: Make this a parameter/variable
@@ -90,8 +90,8 @@ Renderer::Renderer(Infrastructure& infrastructure, Window& window)
     {
         .TopLeftX = 0.f,
         .TopLeftY = 0.f,
-        .Width = (float)window.GetWidth(),
-        .Height = (float)window.GetHeight(),
+        .Width = (float)window.GetSize().cx,
+        .Height = (float)window.GetSize().cy,
         .MinDepth = 0.f,
         .MaxDepth = 1.f
     };

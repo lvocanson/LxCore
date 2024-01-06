@@ -8,9 +8,11 @@ class LxCore
 {
 public:
     static void InitAndRun(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
+    static void Pause();
+    static void Resume();
     static void Shutdown();
 
-    static float FPS() { return s_Instance->m_FPS; }
+    static int FPS() { return s_Instance->m_FPS; }
     static float MSPerFrame() { return s_Instance->m_MSPerFrame; }
 
 private:
@@ -26,6 +28,8 @@ private:
 private:
     static inline LxCore* s_Instance = nullptr;
     bool m_Running = false;
+    bool m_Paused = false;
+
     Window m_MainWnd;
     Infrastructure m_Infrastructure;
     Renderer m_Renderer;

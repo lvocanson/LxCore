@@ -11,6 +11,20 @@ void LxCore::InitAndRun(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     s_Instance->Cleanup();
 }
 
+void LxCore::Pause()
+{
+    LxAssert(s_Instance != nullptr, "LxCore not created.");
+    s_Instance->m_Paused = true;
+    s_Instance->m_GameTimer.Stop();
+}
+
+void LxCore::Resume()
+{
+    LxAssert(s_Instance != nullptr, "LxCore not created.");
+    s_Instance->m_Paused = false;
+    s_Instance->m_GameTimer.Resume();
+}
+
 void LxCore::Shutdown()
 {
     if (s_Instance != nullptr)
@@ -18,11 +32,12 @@ void LxCore::Shutdown()
 }
 
 LxCore::LxCore(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
-    : m_MainWnd(hInstance, nCmdShow, Shutdown)
+    : m_MainWnd(hInstance, nCmdShow)
     , m_Infrastructure(D3D_FEATURE_LEVEL_11_0)
     , m_Renderer(m_Infrastructure, m_MainWnd)
     , m_GameTimer()
 {
+    m_MainWnd.SetOnClose(Shutdown);
 }
 
 void LxCore::MainLoop()
@@ -32,6 +47,12 @@ void LxCore::MainLoop()
     {
         m_MainWnd.ProcessMessages();
         m_GameTimer.Tick();
+        if (m_Paused)
+        {
+            Sleep(100);
+            continue;
+        }
+
         UpdateFrameStats();
     }
 }
@@ -44,7 +65,7 @@ void LxCore::UpdateFrameStats()
     timeElapsed += m_GameTimer.DeltaTime();
     if (timeElapsed >= 1.0f)
     {
-        m_FPS = (float)frameCount;
+        m_FPS = frameCount;
         m_MSPerFrame = 1000.0f / m_FPS;
 
         std::wostringstream outs;

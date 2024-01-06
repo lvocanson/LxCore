@@ -1,7 +1,8 @@
 #include "LxCore\core\Window.h"
+#include "LxCore\core\LxCore.h"
+#include <windowsx.h>
 
-Window::Window(HINSTANCE hInstance, int nCmdShow, Callback onClose)
-    : m_OnClose(onClose)
+Window::Window(HINSTANCE hInstance, int nCmdShow)
 {
     LxAssert(Register(hInstance), "Failed to register window class.");
 
@@ -88,8 +89,7 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
     case WM_DESTROY:
     {
         Window* window = GetWindow(hWnd);
-        if (window->m_OnClose)
-            window->m_OnClose();
+        window->m_OnClose();
         PostQuitMessage(0);
         break;
     }
@@ -97,8 +97,55 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
     {
         Window* window = GetWindow(hWnd);
         window->m_Size = {LOWORD(lParam), HIWORD(lParam)};
+        if (wParam == SIZE_MAXIMIZED || (wParam == SIZE_RESTORED && !window->m_Resizing))
+        {
+            window->m_OnResize();
+        }
         break;
     }
+    case WM_ENTERSIZEMOVE:
+    {
+        Window* window = GetWindow(hWnd);
+        window->m_Resizing = true;
+        LxCore::Pause();
+        break;
+    }
+    case WM_EXITSIZEMOVE:
+    {
+        Window* window = GetWindow(hWnd);
+        window->m_Resizing = false;
+        window->m_OnResize();
+        LxCore::Resume();
+        break;
+    }
+    // Avoid beeping when pressing Alt+Enter
+    case WM_MENUCHAR: return MAKELRESULT(0, MNC_CLOSE);
+
+    case WM_KEYDOWN:
+    {
+        Window* window = GetWindow(hWnd);
+        window->m_OnMouseClick(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        break;
+    }
+    case WM_KEYUP:
+    {
+        Window* window = GetWindow(hWnd);
+        window->m_OnKeyInput(wParam, false);
+        break;
+    }
+    case WM_MOUSEMOVE:
+    {
+        Window* window = GetWindow(hWnd);
+        window->m_OnMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        break;
+    }
+    case WM_MOUSEWHEEL:
+    {
+        Window* window = GetWindow(hWnd);
+        window->m_OnMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam));
+        break;
+    }
+
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
