@@ -2,10 +2,10 @@
 #include "LxCore\core\Window.h"
 #include <sstream>
 
-void LxCore::InitAndRun(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
+void LxCore::InitAndRun(HINSTANCE hInstance, int nCmdShow, const wchar_t* windowName)
 {
     LxAssert(s_Instance == nullptr, "LxCore already created.");
-    s_Instance = new LxCore(hInstance, lpCmdLine, nCmdShow);
+    s_Instance = new LxCore(hInstance, nCmdShow, windowName);
     s_Instance->MainLoop();
     s_Instance->Cleanup();
 }
@@ -30,8 +30,8 @@ void LxCore::Shutdown()
         s_Instance->m_Running = false;
 }
 
-LxCore::LxCore(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
-    : m_MainWnd(hInstance, nCmdShow)
+LxCore::LxCore(HINSTANCE hInstance, int nCmdShow, const wchar_t* windowName)
+    : m_MainWnd(hInstance, nCmdShow, windowName)
     , m_Renderer(m_MainWnd)
     , m_GameTimer()
 {

@@ -11,7 +11,7 @@ class Window
     typedef void(*WheelCallback)(int delta);
 
 public:
-    Window(HINSTANCE hInstance, int nCmdShow);
+    Window(HINSTANCE hInstance, int nCmdShow, const wchar_t* windowName);
     ~Window();
 
     void ProcessMessages();
@@ -38,9 +38,9 @@ private:
 private:
     HWND m_Handle = nullptr;
     MSG m_Msg = {0};
-    SIZE m_Size = {0};
     Callback m_OnClose = DefaultCallback;
 
+    SIZE m_Size = {0};
     bool m_Resizing = false;
     Callback m_OnResize = DefaultCallback;
 
@@ -58,5 +58,4 @@ private: // Default empty callbacks, to avoid null checks
 
 private:
     static constexpr const wchar_t* s_ClassName = L"LxCoreWindow";
-    static constexpr const wchar_t* s_WindowName = L"LxCoreWindow";
 };

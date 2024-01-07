@@ -2,13 +2,13 @@
 #include "LxCore\core\LxCore.h"
 #include <windowsx.h>
 
-Window::Window(HINSTANCE hInstance, int nCmdShow)
+Window::Window(HINSTANCE hInstance, int nCmdShow, const wchar_t* windowName)
 {
     LxAssert(Register(hInstance), "Failed to register window class.");
 
     m_Handle = CreateWindowExW(
         0,
-        s_ClassName, s_WindowName,
+        s_ClassName, windowName,
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
         CW_USEDEFAULT, CW_USEDEFAULT,

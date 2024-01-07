@@ -6,7 +6,7 @@
 class LxCore
 {
 public:
-    static void InitAndRun(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
+    static void InitAndRun(HINSTANCE hInstance, int nCmdShow, const wchar_t* windowName);
     static void Pause();
     static void Resume();
     static void Shutdown();
@@ -15,7 +15,7 @@ public:
     static float MSPerFrame() { return s_Instance->m_MSPerFrame; }
 
 private:
-    LxCore(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow);
+    LxCore(HINSTANCE hInstance, int nCmdShow, const wchar_t* windowName);
     ~LxCore() = default;
     LxCore(const LxCore&) = delete;
     LxCore& operator=(const LxCore&) = delete;
