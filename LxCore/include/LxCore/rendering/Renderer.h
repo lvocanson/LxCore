@@ -1,22 +1,15 @@
 #pragma once
 #include <vector>
 #include <wrl.h>
+#include <d3d12.h>
 
 class Window;
-
-struct IDXGIFactory4;
-struct ID3D12Device;
-struct ID3D12Fence;
-struct ID3D12CommandQueue;
-struct ID3D12CommandAllocator;
-struct ID3D12GraphicsCommandList;
-struct IDXGISwapChain;
-struct ID3D12DescriptorHeap;
-struct ID3D12Resource;
 
 struct IDXGIAdapter;
 struct IDXGIOutput;
 struct DXGI_MODE_DESC;
+struct IDXGIFactory4;
+struct IDXGISwapChain;
 
 class Renderer
 {
@@ -25,25 +18,21 @@ public:
     ~Renderer() = default;
 
     void OnResize();
+    void Render();
 
-private:
-    void CreateFactory();
-    void CreateDevice(enum D3D_FEATURE_LEVEL featureLevel);
-
-    void CreateFence();
-    void CreateCommandObjects();
-    void CreateSwapChain();
-
-    void Get4xMsaaQuality(enum DXGI_FORMAT format);
-    void CreateDescriptorHeap(UINT numDescriptors, enum D3D12_DESCRIPTOR_HEAP_TYPE type, bool shaderVisible, ID3D12DescriptorHeap** descriptorHeap) const;
-
-public:
     UINT GetAdapters(std::vector<IDXGIAdapter*>& adapters) const;
     static UINT GetAdapterOutputs(IDXGIAdapter* adapter, std::vector<IDXGIOutput*>& outputs);
     static UINT GetOutputDisplayModes(IDXGIOutput* output, enum DXGI_FORMAT format, UINT flags, std::vector<DXGI_MODE_DESC>& modes);
 
 private:
+    void CreateCommandObjects();
+    void CreateSwapChain();
+    void CreateRtvAndDsvDescriptorHeap();
+
     void FlushCommandQueue();
+
+    inline D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView() const;
+    inline D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView() const;
 
 private:
     Window& m_Window;
@@ -60,11 +49,17 @@ private:
     Microsoft::WRL::ComPtr<IDXGISwapChain> m_SwapChain;
 
     UINT m_RtvSize, m_DsvSize, m_CbvSrvUavSize;
-    UINT m_4xMsaaQuality;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_DsvHeap;
-    static const char m_SwapChainBufferCount = 2;
-    char m_CurrBackBuffer = 0;
+
+    UINT m_4xMsaaQuality;
+    bool m_4xMsaaEnabled = false;
+
+    static constexpr BYTE m_SwapChainBufferCount = 2;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_SwapChainBuffers[m_SwapChainBufferCount];
+    BYTE m_CurrBackBuffer = 0;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_DepthStencilBuffer;
+
+    D3D12_VIEWPORT m_ScreenViewport;
+    D3D12_RECT m_ScissorRect;
 };

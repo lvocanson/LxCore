@@ -36,6 +36,7 @@ LxCore::LxCore(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
     , m_GameTimer()
 {
     m_MainWnd.SetOnClose(Shutdown);
+    m_MainWnd.SetOnResize([]() { s_Instance->m_Renderer.OnResize(); });
 }
 
 void LxCore::MainLoop()
@@ -52,12 +53,13 @@ void LxCore::MainLoop()
         }
 
         UpdateFrameStats();
+        m_Renderer.Render();
     }
 }
 
 void LxCore::UpdateFrameStats()
 {
-    static int frameCount = 0;
+    static USHORT frameCount = 0;
     static float timeElapsed = 0.0f;
     frameCount++;
     timeElapsed += m_GameTimer.DeltaTime();
